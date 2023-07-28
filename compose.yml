@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  mariadb:
+    image: mariadb
+    ports:
+      - 3306:3306
+    environment:
+      MARIADB_ROOT_PASSWORD: ${PASSWORD_ROOT}
+      MARIADB_DATABASE: ${DATABASE_NAME}
+    healthcheck:
+      test: "/usr/bin/mysql --user=root --password=${PASSWORD_ROOT} --execute \"SHOW DATABASES;\""
+      interval: 3s
+      timeout: 1s
+      retries: 5
+
+  graphql-auth:
+    build:
+      context: graphql-auth
+      dockerfile: ./DockerfileDev
+    volumes:
+      - ./graphql-auth:/app
+      - /app/node_modules
+      - /app/.pnpm-store
+    environment:
+      - PORT=${PORT_GRAPHQL}
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+    ports:
+      - 3000:${PORT_GRAPHQL}
+    links:
+      - mariadb
+
+  graphql-auth-prod:
+    image: albertmcavoy/graphqlprod
+    environment:
+      - PORT=${PORT_GRAPHQL}
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+    ports:
+      - 3000:${PORT_GRAPHQL}
+    links:
+      - mariadb
+    

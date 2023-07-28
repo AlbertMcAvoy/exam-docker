@@ -1,0 +1,15 @@
+FROM node:20
+
+RUN npm install -g pnpm
+
+RUN npm install -g prisma
+
+WORKDIR /app
+
+COPY ["package.json", "pnpm-lock.yaml",  "./"]
+
+RUN pnpm install
+
+COPY . .
+
+CMD prisma generate && pnpm run dev
